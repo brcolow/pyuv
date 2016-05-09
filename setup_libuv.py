@@ -143,7 +143,7 @@ class libuv_build_ext(build_ext):
             self.compiler.add_library('uv')
         else:
             if sys.platform == 'win32':
-                self.libuv_lib = os.path.join(self.libuv_dir, 'Release', 'lib', 'libuv.lib')
+                self.libuv_lib = os.path.join(self.libuv_dir, 'build', 'Release', 'uv.lib')
             else:
                 self.libuv_lib = os.path.join(self.libuv_dir, '.libs', 'libuv.a')
             self.get_libuv()
@@ -161,6 +161,7 @@ class libuv_build_ext(build_ext):
             self.compiler.add_library('shell32')
             self.compiler.add_library('userenv')
             self.compiler.add_library('ws2_32')
+            # self.compiler.add_library('./deps/libuv/build/uv.dir/Release')
         elif sys.platform.startswith('freebsd'):
             self.compiler.add_library('kvm')
         build_ext.build_extensions(self)
@@ -185,7 +186,12 @@ class libuv_build_ext(build_ext):
             if sys.platform == 'win32':
                 prepare_windows_env(env)
                 libuv_arch = {'32bit': 'x86', '64bit': 'x64'}[platform.architecture()[0]]
-                exec_process(['cmd.exe', '/C', 'vcbuild.bat', libuv_arch, 'release'], cwd=self.libuv_dir, env=env, shell=True, silent=not self.libuv_verbose_build)
+                # exec_process(['cmd.exe', '/C', 'vcbuild.bat', libuv_arch, 'release'], cwd=self.libuv_dir, env=env, shell=True, silent=not self.libuv_verbose_build)
+                print(str(self.libuv_dir))
+                shutil.copyfile('uv.cmake', 'deps\libuv\CMakeLists.txt')
+                # exec_process(['cmd.exe', '/C', 'cp ../../uv.cmake ./../CMakeLists.txt'], cwd=self.libuv_dir, env=env, shell=True, silent=not self.libuv_verbose_build)
+                exec_process(['cmd.exe', '/C', 'cmake', '-H.', '-Bbuild', '-G', 'Visual Studio 14 2015'], cwd=self.libuv_dir, env=env, shell=True, silent=not self.libuv_verbose_build)
+                exec_process(['cmd.exe', '/C', 'cmake --build build --config Release'], cwd=self.libuv_dir, env=env, shell=True, silent=not self.libuv_verbose_build)
             else:
                 exec_process(['sh', 'autogen.sh'], cwd=self.libuv_dir, env=env, silent=not self.libuv_verbose_build)
                 exec_process(['./configure'], cwd=self.libuv_dir, env=env, silent=not self.libuv_verbose_build)
@@ -205,7 +211,9 @@ class libuv_build_ext(build_ext):
                 if sys.platform == 'win32':
                     env = os.environ.copy()
                     prepare_windows_env(env)
-                    exec_process(['cmd.exe', '/C', 'vcbuild.bat', 'clean'], cwd=self.libuv_dir, env=env, shell=True)
+                    exec_process(['cmd.exe', '/C', 'cmake', '-H.', '-Bbuild', '-G', 'Visual Studio 14 2015'], cwd=self.libuv_dir, env=env, shell=True, silent=not self.libuv_verbose_build)
+                    exec_process(['cmd.exe', '/C', 'cmake --build build --config Release'], cwd=self.libuv_dir, env=env, shell=True, silent=not self.libuv_verbose_build)
+                    # exec_process(['cmd.exe', '/C', 'vcbuild.bat', 'clean'], cwd=self.libuv_dir, env=env, shell=True)
                     rmtree(os.path.join(self.libuv_dir, 'Release'))
                 else:
                     exec_process(['make', 'clean'], cwd=self.libuv_dir)
@@ -240,8 +248,8 @@ class libuv_sdist(sdist):
                 exec_process(['patch', '--forward', '-d', self.libuv_dir, '-p0', '-i', os.path.abspath(patch_file)])
         rmtree(os.path.join(self.libuv_dir, '.git'))
 
-        log.info('Downloading gyp...')
-        exec_process(['git', 'clone', self.gyp_repo, self.gyp_dir])
-        rmtree(os.path.join(self.gyp_dir, 'test'))
-        rmtree(os.path.join(self.gyp_dir, '.git'))
+        # log.info('Downloading gyp...')
+        # exec_process(['git', 'clone', self.gyp_repo, self.gyp_dir])
+        # rmtree(os.path.join(self.gyp_dir, 'test'))
+        # rmtree(os.path.join(self.gyp_dir, '.git'))
 

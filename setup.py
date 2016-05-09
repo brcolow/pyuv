@@ -41,6 +41,7 @@ setup(name             = "pyuv",
       packages     = ['pyuv'],
       ext_modules  = [Extension('pyuv._cpyuv',
                                 sources = ['src/pyuv.c'],
+                                libraries = ['deps/libuv/build/Release'],
                      )]
      )
 
